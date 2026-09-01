@@ -192,7 +192,7 @@ Distancia: 42.35 cm | Referencia: 70 cm | Brilho: 100
 
 Em caso de ausência de eco:
 
-Sem eco | Sensor sem leitura valida | Brilho: 0
+Sem eco | Sensor sem leitura válida | Brilho: 0
 
 ## Pinagem
 
@@ -228,4 +228,6 @@ Wokwi.
 
 O firmware do Arduino está disponível em:
 
-`COLOCAR_CAMINHO_DO_CODIGO_AQUI`
+Edge_Computing_HC-SR04_Project/
+├── README.md
+└── Edge_Computing.ino

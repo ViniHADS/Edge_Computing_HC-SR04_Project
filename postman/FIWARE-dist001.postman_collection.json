@@ -1,0 +1,183 @@
+{
+  "info": {
+    "name": "FIWARE dist001 - ESP32 virtual",
+    "description": "Broker Docker localhost1883. Inicie ESP32Mock --mock --fiware --broker localhost --port1883. Consultas no Orion1026 e comandos diretamente no IoT Agent4041. Nao reprovisiona nem remove dados. GETs sem Content-Type, conforme exigido pelo Orion.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "url",
+      "value": "localhost",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "1 Health IoT Agent",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "fiware-service",
+            "value": "smart"
+          },
+          {
+            "key": "fiware-servicepath",
+            "value": "/"
+          }
+        ],
+        "url": "http://{{url}}:4041/iot/about"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"Resposta de sucesso\", function () { pm.expect(pm.response.code).to.be.within(200, 299); });"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "2 Cadastro dist001",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "fiware-service",
+            "value": "smart"
+          },
+          {
+            "key": "fiware-servicepath",
+            "value": "/"
+          }
+        ],
+        "url": "http://{{url}}:4041/iot/devices/dist001"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"Resposta de sucesso\", function () { pm.expect(pm.response.code).to.be.within(200, 299); });"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "3 Ler dados no Orion",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "fiware-service",
+            "value": "smart"
+          },
+          {
+            "key": "fiware-servicepath",
+            "value": "/"
+          }
+        ],
+        "url": "http://{{url}}:1026/v2/entities/urn:ngsi-ld:dist001:001?type=dist001&options=keyValues"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"Resposta de sucesso\", function () { pm.expect(pm.response.code).to.be.within(200, 299); });",
+              "pm.test(\"Distance numerico\", function () { pm.expect(pm.response.json().distance).to.be.a(\"number\"); });"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "4 Desligar LED virtual",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "fiware-service",
+            "value": "smart"
+          },
+          {
+            "key": "fiware-servicepath",
+            "value": "/"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "http://{{url}}:4041/v2/op/update",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"actionType\": \"update\",\n  \"entities\": [\n    {\n      \"id\": \"urn:ngsi-ld:dist001:001\",\n      \"type\": \"dist001\",\n      \"off\": {\n        \"type\": \"command\",\n        \"value\": \"\"\n      }\n    }\n  ]\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"Resposta de sucesso\", function () { pm.expect(pm.response.code).to.be.within(200, 299); });"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "5 Ligar LED virtual",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "fiware-service",
+            "value": "smart"
+          },
+          {
+            "key": "fiware-servicepath",
+            "value": "/"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "http://{{url}}:4041/v2/op/update",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"actionType\": \"update\",\n  \"entities\": [\n    {\n      \"id\": \"urn:ngsi-ld:dist001:001\",\n      \"type\": \"dist001\",\n      \"on\": {\n        \"type\": \"command\",\n        \"value\": \"\"\n      }\n    }\n  ]\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"Resposta de sucesso\", function () { pm.expect(pm.response.code).to.be.within(200, 299); });"
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}

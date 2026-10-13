@@ -1,0 +1,10 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {"label":"Arduino: compilar Mega", "type":"shell", "command":"sh scripts/arduino.sh compile", "options":{"cwd":"${workspaceFolder}"}, "problemMatcher":[]},
+    {"label":"Arduino: gravar Mega", "type":"shell", "command":"sh scripts/arduino.sh upload ${input:portaArduino}", "options":{"cwd":"${workspaceFolder}"}, "problemMatcher":[]},
+    {"label":"Ponte: compilar", "type":"shell", "command":"cmake --build ESP32/ESP32_mqtt_mock/build", "options":{"cwd":"${workspaceFolder}"}, "problemMatcher":[]},
+    {"label":"Testes: logica", "type":"shell", "command":".venv/bin/python -B -m unittest discover -s tests -v", "options":{"cwd":"${workspaceFolder}"}, "problemMatcher":[]}
+  ],
+  "inputs":[{"id":"portaArduino", "type":"promptString", "description":"Porta serial do Mega", "default":"/dev/cu.usbserial-120"}]
+}

@@ -1,0 +1,208 @@
+{
+  "info": {
+    "name": "Mega 2560 - API localhost",
+    "description": "HTTP localhost:8000 -> MQTT localhost:1883 -> ESP32Mock -> Mega USB. Inicie scripts/run_local.py antes de executar. As primeiras cinco requisições não solicitam reset; a última é um teste explícito de watchdog.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:8000",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "Operação normal",
+      "item": [
+        {
+          "name": "1 - Verificar API e MQTT",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/health",
+            "description": "200: API conectada e inscrita no MQTT. 503: broker indisponível. Não confirma a presença do Mega."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 200\", function () { pm.response.to.have.status(200); });",
+                  "pm.test(\"Resposta JSON\", function () { pm.response.json(); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "2 - Consultar última telemetria",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/telemetria",
+            "description": "404 até receber a primeira amostra. Verifique recebido_em, idade_segundos e desatualizada. Em --mock os dados são artificiais."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 200\", function () { pm.response.to.have.status(200); });",
+                  "pm.test(\"Resposta JSON\", function () { pm.response.json(); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "3 - Atraso normal de 100 ms",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/comandos/atraso",
+            "description": "Envia comando MQTT, sem confirmar execução física. Não usa retenção.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"atraso_ms\": 100\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 202\", function () { pm.response.to.have.status(202); });",
+                  "pm.test(\"Resposta JSON\", function () { pm.response.json(); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "4 - Alterar atraso para 250 ms",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/comandos/atraso",
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"atraso_ms\": 250\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 202\", function () { pm.response.to.have.status(202); });",
+                  "pm.test(\"Resposta JSON\", function () { pm.response.json(); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "5 - Testar rejeição de comando inválido",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/comandos/atraso",
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"atraso_ms\": 99\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 400\", function () { pm.response.to.have.status(400); });",
+                  "pm.test(\"Resposta JSON\", function () { pm.response.json(); });"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Teste intencional de reinicialização",
+      "item": [
+        {
+          "name": "6 - Testar watchdog (reinicia Mega conectado)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/comandos/atraso",
+            "description": "Na placa real, provoca reinicialização intencional pelo watchdog; atraso volta a 100 ms. No mock automático define intervalo de 2000 ms, sem reset; no mock manual somente registra o comando.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"atraso_ms\": 2000\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 202\", function () { pm.response.to.have.status(202); });",
+                  "pm.test(\"Resposta JSON\", function () { pm.response.json(); });"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
